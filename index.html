@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>E-Arsip KPU Sulbar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+  <div class="max-w-4xl mx-auto p-6 space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow">
+      <h1 class="text-xl font-black text-slate-800">E-ARSIP KPU PROV. SULBAR</h1>
+      <p class="text-sm text-slate-500">Halaman User</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold text-slate-500 uppercase">Kategori</label>
+          <select id="tipe" class="w-full p-3 border rounded-xl">
+            <option value="Surat Tugas">Surat Tugas</option>
+            <option value="Surat Keluar">Surat Keluar</option>
+            <option value="Surat Keputusan">Surat Keputusan</option>
+            <option value="Berita Acara">Berita Acara</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 uppercase">Tanggal Dokumen</label>
+          <input id="tglDokumen" type="date" class="w-full p-3 border rounded-xl" />
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-slate-500 uppercase">Perihal</label>
+        <textarea id="perihal" rows="3" class="w-full p-3 border rounded-xl"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold text-slate-500 uppercase">Pengambil Nomor</label>
+          <input id="pengambil" class="w-full p-3 border rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 uppercase">Upload PDF (Max 1MB)</label>
+          <input id="filePdf" type="file" accept="application/pdf" class="w-full p-3 border rounded-xl bg-white" />
+        </div>
+      </div>
+
+      <button onclick="ambilNomor()"
+        class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs">
+        Ambil Nomor
+      </button>
+
+      <div id="resultBox" class="hidden p-4 rounded-xl bg-green-50 text-green-700 text-sm font-bold"></div>
+      <div id="errBox" class="hidden p-4 rounded-xl bg-red-50 text-red-700 text-sm font-bold"></div>
+    </div>
+
+    <div class="text-center">
+      <a href="./login.html" class="text-xs font-bold text-slate-500 hover:text-red-600 uppercase">
+        Login Admin
+      </a>
+    </div>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+
+  <script>
+    function showErr(msg) {
+      qs("errBox").innerText = msg;
+      qs("errBox").classList.remove("hidden");
+      qs("resultBox").classList.add("hidden");
+    }
+    function showOk(msg) {
+      qs("resultBox").innerText = msg;
+      qs("resultBox").classList.remove("hidden");
+      qs("errBox").classList.add("hidden");
+    }
+
+    async function ambilNomor() {
+      try {
+        const tipe = qs("tipe").value;
+        const tglDokumen = qs("tglDokumen").value;
+        const perihal = qs("perihal").value.trim();
+        const pengambil = qs("pengambil").value.trim();
+
+        if (!tglDokumen) return showErr("Tanggal dokumen wajib diisi.");
+        if (!perihal) return showErr("Perihal wajib diisi.");
+        if (!pengambil) return showErr("Pengambil nomor wajib diisi.");
+
+        // file optional
+        const f = qs("filePdf").files[0];
+        let file = null;
+
+        if (f) {
+          if (f.size > 1024 * 1024) return showErr("Ukuran PDF melebihi 1MB.");
+          const b64 = await toBase64(f);
+          file = { name: f.name, mime: f.type, data: b64 };
+        }
+
+        const res = await api("ambilNomor", {
+          tipe,
+          tglDokumen,
+          perihal,
+          pengambil,
+          file
+        });
+
+        showOk("Nomor berhasil dibuat: " + res.nomor);
+      } catch (e) {
+        showErr(e.message);
+      }
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+
+</body>
+</html>

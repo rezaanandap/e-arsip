@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Print Laporan</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; color: #333; }
+    .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+    th { background: #f2f2f2; border: 1px solid #000; padding: 6px; text-transform: uppercase; }
+    td { border: 1px solid #000; padding: 6px; vertical-align: top; }
+    .footer { margin-top: 30px; text-align: right; font-size: 12px; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h2 style="margin:0">KOMISI PEMILIHAN UMUM</h2>
+    <h3 style="margin:5px 0">PROVINSI SULAWESI BARAT</h3>
+    <p id="judul" style="margin:0; font-size: 12px; font-weight: bold;">Laporan Data</p>
+  </div>
+
+  <div class="no-print" style="margin-bottom: 10px;">
+    <button onclick="window.print()">PRINT</button>
+  </div>
+
+  <table>
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div class="footer">
+    <p id="tglCetak"></p>
+    <br><br><br>
+    <p>( __________________________ )</p>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+
+  <script>
+    function getParam(name) {
+      const u = new URL(window.location.href);
+      return u.searchParams.get(name) || "";
+    }
+
+    async function boot() {
+      const tipe = getParam("tipe");
+      if (!tipe) return alert("Tipe tidak ditemukan.");
+
+      const token = localStorage.getItem("EARSIP_ADMIN_TOKEN") || "";
+
+      const res = await api("getPrintData", { token, tipe });
+      document.getElementById("judul").innerText = "Laporan Data: " + res.tipe;
+      document.getElementById("tglCetak").innerText = "Dicetak pada: " + res.tglCetak;
+
+      // headers
+      let th = "<tr>";
+      res.headers.forEach(h => th += `<th>${h}</th>`);
+      th += "</tr>";
+      document.getElementById("thead").innerHTML = th;
+
+      // rows
+      if (!res.rows || res.rows.length === 0) {
+        document.getElementById("tbody").innerHTML = `<tr><td colspan="${res.headers.length}" style="text-align:center;">Tidak ada data ditemukan.</td></tr>`;
+      } else {
+        let tb = "";
+        res.rows.forEach(r => {
+          tb += "<tr>";
+          r.forEach(c => tb += `<td>${(c ?? "")}</td>`);
+          tb += "</tr>";
+        });
+        document.getElementById("tbody").innerHTML = tb;
+      }
+
+      setTimeout(() => window.print(), 400);
+    }
+
+    boot();
+  </script>
+</body>
+</html>

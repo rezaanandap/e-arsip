@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - E Arsip</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 font-sans">
+  <script>
+    // cegah admin masuk tanpa token
+    if (!localStorage.getItem("EARSIP_ADMIN_TOKEN")) {
+      window.location.href = "./login.html";
+    }
+  </script>
+
+  <div class="min-h-screen">
+    <nav class="bg-indigo-800 text-white p-4 shadow-md flex justify-between items-center">
+      <h1 class="font-bold text-lg italic">E-ARSIP KPU PROV. SULBAR</h1>
+      <div class="flex items-center gap-4">
+        <span id="userStatus" class="text-sm opacity-80 italic">ONLINE</span>
+        <button onclick="logout()" class="bg-red-500 px-3 py-1 rounded text-xs hover:bg-red-600 transition">
+          Keluar
+        </button>
+      </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6 space-y-6">
+
+      <div id="statsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-lg shadow border-b-4 border-indigo-500">
+          <p class="text-gray-400 text-xs font-bold uppercase">Total Dokumen</p>
+          <h2 id="statTotal" class="text-3xl font-bold">...</h2>
+        </div>
+        <div class="bg-white p-5 rounded-lg shadow border-b-4 border-green-500">
+          <p class="text-gray-400 text-xs font-bold uppercase">User Aktif</p>
+          <h2 id="statUsers" class="text-3xl font-bold">...</h2>
+        </div>
+        <div class="bg-white p-5 rounded-lg shadow border-b-4 border-orange-500">
+          <p class="text-gray-400 text-xs font-bold uppercase">Arsip Digital</p>
+          <h2 id="statArsip" class="text-3xl font-bold">...</h2>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-4">
+
+          <div class="bg-white p-4 rounded-lg shadow space-y-3">
+            <div class="flex gap-2">
+              <div class="relative flex-grow">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input id="searchInput" type="text" placeholder="Cari Nomor atau Perihal..."
+                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500">
+              </div>
+              <button onclick="doSearch()" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">Cari</button>
+              <button onclick="resetView()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div class="flex flex-wrap gap-2 pt-2 border-t">
+              <select id="filterTipe" class="p-2 border rounded text-sm focus:ring-2 focus:ring-indigo-500 bg-gray-50">
+                <option value="">Semua Kategori</option>
+                <option value="Surat Tugas">Surat Tugas</option>
+                <option value="Surat Keluar">Surat Keluar</option>
+                <option value="Surat Keputusan">Surat Keputusan</option>
+                <option value="Berita Acara">Berita Acara</option>
+              </select>
+
+              <button onclick="doPrint()" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition">
+                <i class="fas fa-print mr-1"></i> Cetak Laporan
+              </button>
+
+              <button onclick="loadTable()" class="ml-auto text-indigo-600 text-sm hover:underline">
+                <i class="fas fa-sync"></i> Refresh Data
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="w-full text-left">
+              <thead class="bg-gray-100 text-gray-500 text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="p-4">Kategori</th>
+                  <th class="p-4">Nomor</th>
+                  <th class="p-4">Perihal</th>
+                  <th class="p-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody" class="text-sm divide-y divide-gray-100"></tbody>
+            </table>
+
+            <div class="bg-gray-50 px-4 py-3 border-t flex items-center justify-between sm:px-6">
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Menampilkan halaman <span id="currentPageLabel" class="font-medium">1</span>
+                  </p>
+                </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    <button onclick="changePage(-1)" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button onclick="changePage(1)" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      <i class="fas fa-chevron-right"></i>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-lg shadow">
+            <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">Tambah User</h3>
+            <div class="space-y-3">
+              <input id="uName" type="text" placeholder="Username" class="w-full p-2 text-sm border rounded">
+              <input id="uPass" type="password" placeholder="Password" class="w-full p-2 text-sm border rounded">
+              <input id="uFull" type="text" placeholder="Nama Lengkap" class="w-full p-2 text-sm border rounded">
+              <button onclick="saveUser()" class="w-full bg-indigo-600 text-white py-2 rounded text-sm font-bold hover:bg-indigo-700 transition">Simpan User</button>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-lg shadow mt-6">
+            <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">Daftar Pengguna Sistem</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 text-gray-500 uppercase">
+                  <tr>
+                    <th class="p-2">Username</th>
+                    <th class="p-2">Nama</th>
+                    <th class="p-2">Role</th>
+                    <th class="p-2 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody" class="divide-y divide-gray-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+            <h4 class="text-red-700 font-bold text-sm mb-1">Zona Bahaya</h4>
+            <p class="text-[10px] text-red-500 mb-3">Tindakan ini permanen dan tidak bisa dibatalkan.</p>
+            <button onclick="resetData()" class="w-full bg-red-100 text-red-600 py-2 rounded text-xs font-bold hover:bg-red-200 transition uppercase">
+              Kosongkan Database
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+
+  <script>
+    let currentRecords = [];
+    let filteredRecords = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    function auth() {
+      return { token: getAdminToken() };
+    }
+
+    async function boot() {
+      try {
+        const me = await api("adminMe", auth());
+        qs("userStatus").innerText = "Admin: " + (me.nama || "ONLINE");
+
+        await fetchStats();
+        await loadTable();
+        await loadUserList();
+
+      } catch (e) {
+        clearAdminToken();
+        window.location.href = "./login.html";
+      }
+    }
+
+    async function fetchStats() {
+      const stats = await api("getQuickStats", auth());
+      qs("statTotal").innerText = stats.total;
+      qs("statUsers").innerText = stats.users;
+      qs("statArsip").innerText = stats.arsip;
+    }
+
+    async function loadTable() {
+      qs("tableBody").innerHTML = `<tr><td colspan="4" class="p-10 text-center">
+        <i class="fas fa-spinner fa-spin text-indigo-600"></i> Memuat data...
+      </td></tr>`;
+
+      const res = await api("getLatestRecords", auth());
+      currentRecords = res.records || [];
+      filteredRecords = currentRecords;
+      currentPage = 1;
+      renderTableRows();
+    }
+
+    function renderTableRows() {
+      const tbody = qs("tableBody");
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageData = filteredRecords.slice(start, end);
+
+      qs("currentPageLabel").innerText = currentPage;
+
+      let html = "";
+      if (pageData.length === 0) {
+        html = `<tr><td colspan="4" class="p-10 text-center text-gray-400">Tidak ada data.</td></tr>`;
+      } else {
+        pageData.forEach(r => {
+          html += `<tr class="hover:bg-gray-50 transition border-b border-gray-100">
+            <td class="p-4"><span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-[10px] font-bold uppercase">${r.tipe}</span></td>
+            <td class="p-4 text-xs font-medium">${r.nomor || "-"}</td>
+            <td class="p-4 text-xs truncate max-w-[200px]">${r.perihal || "-"}</td>
+            <td class="p-4 flex justify-center gap-3">
+              <button onclick="hapusData('${r.tipe}', ${r.row})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
+        });
+      }
+      tbody.innerHTML = html;
+    }
+
+    function changePage(dir) {
+      const maxPage = Math.ceil(filteredRecords.length / itemsPerPage);
+      const next = currentPage + dir;
+      if (next >= 1 && next <= maxPage) {
+        currentPage = next;
+        renderTableRows();
+      }
+    }
+
+    async function doSearch() {
+      const q = qs("searchInput").value.trim();
+      if (!q) return alert("Masukkan kata kunci!");
+
+      qs("tableBody").innerHTML = `<tr><td colspan="4" class="p-10 text-center">
+        <i class="fas fa-spinner fa-spin"></i> Mencari di seluruh database...
+      </td></tr>`;
+
+      const res = await api("searchAdmin", { ...auth(), q });
+      filteredRecords = res.records || [];
+      currentPage = 1;
+      renderTableRows();
+    }
+
+    function resetView() {
+      qs("searchInput").value = "";
+      qs("filterTipe").value = "";
+      filteredRecords = currentRecords;
+      currentPage = 1;
+      renderTableRows();
+    }
+
+    qs("filterTipe").addEventListener("change", function () {
+      const selectedType = this.value;
+      filteredRecords = selectedType ? currentRecords.filter(r => r.tipe === selectedType) : currentRecords;
+      currentPage = 1;
+      renderTableRows();
+    });
+
+    async function hapusData(tipe, row) {
+      if (!confirm(`Hapus data ${tipe} baris ${row}?`)) return;
+      await api("deleteAdminRecord", { ...auth(), tipe, row });
+      await loadTable();
+      await fetchStats();
+    }
+
+    function doPrint() {
+      const tipe = qs("filterTipe").value;
+      if (!tipe) return alert("Silakan pilih satu kategori dokumen di filter terlebih dahulu.");
+
+      // tipe dikirim tanpa spasi biar konsisten
+      const t = tipe.replace(/\s+/g, "");
+      window.open("./print.html?tipe=" + encodeURIComponent(t), "_blank");
+    }
+
+    async function saveUser() {
+      const payload = {
+        user: qs("uName").value.trim(),
+        pass: qs("uPass").value,
+        nama: qs("uFull").value.trim(),
+        role: "User"
+      };
+
+      if (!payload.user || !payload.pass || !payload.nama) {
+        return alert("Semua kolom wajib diisi!");
+      }
+
+      const res = await api("manageUserAdd", { ...auth(), payload });
+      alert(res.msg || "Berhasil");
+
+      qs("uName").value = "";
+      qs("uPass").value = "";
+      qs("uFull").value = "";
+
+      await loadUserList();
+      await fetchStats();
+    }
+
+    async function loadUserList() {
+      qs("userTableBody").innerHTML = `<tr><td colspan="4" class="p-2 text-center text-gray-400">Memuat...</td></tr>`;
+      const res = await api("getUsers", auth());
+      const users = res.users || [];
+
+      let html = "";
+      users.forEach(u => {
+        html += `<tr class="border-b text-[11px]">
+          <td class="p-2">${u.username}</td>
+          <td class="p-2">${u.nama}</td>
+          <td class="p-2">${u.role}</td>
+          <td class="p-2 text-center">
+            <button onclick="deleteUser(${u.row}, '${u.username}')" class="text-red-500 hover:text-red-700">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+      });
+
+      qs("userTableBody").innerHTML = html || `<tr><td colspan="4" class="p-2 text-center">Tidak ada user.</td></tr>`;
+    }
+
+    async function deleteUser(row, username) {
+      if (!confirm(`Hapus pengguna '${username}'?`)) return;
+      const res = await api("manageUserDelete", { ...auth(), row });
+      alert(res.msg || "Berhasil");
+      await loadUserList();
+      await fetchStats();
+    }
+
+    async function resetData() {
+      if (!confirm("KOSONGKAN SELURUH DATABASE?")) return;
+      const res = await api("resetAllData", auth());
+      alert(res.msg || "Berhasil");
+      await loadTable();
+      await fetchStats();
+    }
+
+    async function logout() {
+      if (!confirm("Apakah Anda yakin ingin keluar?")) return;
+      try {
+        await api("adminLogout", auth());
+      } catch (e) {}
+      clearAdminToken();
+      window.location.href = "./login.html";
+    }
+
+    boot();
+  </script>
+</body>
+</html>

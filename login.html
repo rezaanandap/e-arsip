@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login - E Arsip</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-10">
+    <div class="text-center mb-8">
+      <div class="inline-block bg-red-600 p-4 rounded-2xl mb-4 shadow-lg">
+        <i class="fas fa-user-shield text-white text-3xl"></i>
+      </div>
+      <h2 class="text-2xl font-black text-slate-800">ADMIN LOGIN</h2>
+      <p class="text-slate-400 text-sm font-medium">E-Arsip KPU Prov. Sulbar</p>
+    </div>
+
+    <form id="loginForm" class="space-y-5">
+      <div>
+        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Username</label>
+        <input type="text" id="username" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all">
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Password</label>
+        <input type="password" id="password" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all">
+      </div>
+
+      <button type="submit" id="btnLogin"
+        class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-lg">
+        Masuk Ke Dashboard
+      </button>
+
+      <a href="./index.html" class="block text-center text-slate-400 text-[10px] font-bold uppercase mt-4 hover:text-red-500">
+        Kembali ke Beranda
+      </a>
+    </form>
+
+    <div id="errMsg" class="hidden mt-4 p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg text-center"></div>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+
+  <script>
+    qs("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = qs("btnLogin");
+      const err = qs("errMsg");
+
+      btn.disabled = true;
+      btn.innerText = "MEMVERIFIKASI...";
+      err.classList.add("hidden");
+
+      try {
+        const username = qs("username").value.trim();
+        const password = qs("password").value;
+
+        const res = await api("adminLogin", { username, password });
+        setAdminToken(res.token);
+
+        window.location.href = "./admin.html";
+      } catch (e) {
+        err.innerText = e.message;
+        err.classList.remove("hidden");
+        btn.disabled = false;
+        btn.innerText = "Masuk Ke Dashboard";
+      }
+    });
+  </script>
+</body>
+</html>
