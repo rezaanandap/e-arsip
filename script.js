@@ -1415,3 +1415,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (page === "login") initLoginPage();
   if (page === "admin") initAdminPage();
 });
+
