@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Admin - E-Arsip KPU</title>
+
+  <link rel="icon" type="image/png" href="/images/logo-gold.png" />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-page="login">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo">
+            <img src="/images/logo-gold.png" type="image/png" alt="Logo">
+        </div>
+        <div>
+          <div class="title">E-Arsip KPU</div>
+          <div class="subtitle">Admin Login</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <a href="index.html" class="btn btn-outline">Kembali</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="hero">
+      <div>
+        <h1>Login Admin</h1>
+        <p>
+          Masuk untuk mengakses dashboard admin: statistik, pencarian, edit, delete,
+          cetak laporan, manajemen admin, dan danger zone.
+        </p>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-stat">
+          <div class="k">Keamanan</div>
+          <div class="v">Role Based</div>
+        </div>
+        <div class="hero-stat">
+          <div class="k">Session</div>
+          <div class="v">LocalStorage</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="max-width:560px; margin: 0 auto;">
+
+      <div class="card-head">
+        <div>
+          <h2>Masuk</h2>
+          <p class="hint">
+            Gunakan akun admin yang tersimpan di sheet <b>admins</b>.
+          </p>
+        </div>
+      </div>
+
+      <div class="form">
+
+        <div>
+          <div class="label">Username</div>
+          <input id="loginUsername" class="input" placeholder="contoh: superadmin" autocomplete="username" />
+        </div>
+
+        <div>
+          <div class="label">Password</div>
+          <input id="loginPassword" type="password" class="input" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+
+        <button id="btnLoginAdmin" class="btn btn-primary btn-block" onclick="loginAdminSubmit()">
+          Login
+        </button>
+
+        <div class="hint" style="text-align:center;">
+          Default super admin: <b>superadmin</b> / <b>admin123</b>
+        </div>
+
+      </div>
+
+    </section>
+
+    <footer class="footer">
+      <div>
+        <b>E-Arsip KPU</b> — Admin Panel
+      </div>
+      <div class="hint">
+        © 2026 • Google Apps Script + GitHub Pages
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- JS -->
+  <script src="script.js"></script>
+
+  <script>
+    // Enter = login
+    document.addEventListener("DOMContentLoaded", () => {
+      const u = document.getElementById("loginUsername");
+      const p = document.getElementById("loginPassword");
+
+      u.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") loginAdminSubmit();
+      });
+      p.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") loginAdminSubmit();
+      });
+    });
+  </script>
+
+</body>
+</html>

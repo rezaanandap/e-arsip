@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Admin - E-Arsip KPU</title>
+
+  <link rel="icon" type="image/png" href="/images/logo-gold.png" />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-page="admin">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo">
+            <img src="/images/logo-gold.png" type="image/png" alt="Logo">
+        </div>
+        <div>
+          <div class="title">E-Arsip KPU</div>
+          <div class="subtitle">Admin Dashboard</div>
+        </div>
+      </div>
+
+      <div class="top-actions" style="display:flex; gap:10px; align-items:center;">
+        <div id="adminInfo" class="badge primary">Memuat...</div>
+        <button class="btn btn-outline btn-sm" onclick="logoutAdmin()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <h1>Dashboard Admin</h1>
+        <p>
+          Kelola seluruh data pencatatan nomor dokumen, arsip digital PDF,
+          manajemen admin, serta cetak laporan.
+        </p>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-stat">
+          <div class="k">Role</div>
+          <div id="heroRole" class="v">-</div>
+        </div>
+        <div class="hero-stat">
+          <div class="k">Status</div>
+          <div class="v">Authorized</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABS -->
+    <section class="tabs no-print">
+      <button id="tabBtnDash" class="tab active" onclick="showAdminTab('tabDashboard')">
+        Dashboard
+      </button>
+      <button id="tabBtnData" class="tab" onclick="showAdminTab('tabData')">
+        Data Dokumen
+      </button>
+      <button id="tabBtnArsip" class="tab" onclick="showAdminTab('tabArsip')">
+        Arsip Digital
+      </button>
+      <button id="tabBtnAdmins" class="tab" onclick="showAdminTab('tabAdmins')">
+        Admin & Role
+      </button>
+      <button id="tabBtnDanger" class="tab" onclick="showAdminTab('tabDanger')">
+        Danger Zone
+      </button>
+    </section>
+
+    <!-- =========================
+         TAB: DASHBOARD
+         ========================= -->
+    <section id="tabDashboard" class="card">
+
+      <div class="card-head">
+        <div>
+          <h2>Statistik Ringkas</h2>
+          <p class="hint">Ringkasan total dokumen per tipe dan total arsip digital.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-4" id="statsCards">
+        <div class="stat">
+          <div class="k">Surat Keluar</div>
+          <div class="v">0</div>
+          <div class="mini">Total dokumen tercatat</div>
+        </div>
+        <div class="stat">
+          <div class="k">Berita Acara</div>
+          <div class="v">0</div>
+          <div class="mini">Total dokumen tercatat</div>
+        </div>
+        <div class="stat">
+          <div class="k">Surat Keputusan</div>
+          <div class="v">0</div>
+          <div class="mini">Total dokumen tercatat</div>
+        </div>
+        <div class="stat">
+          <div class="k">Surat Tugas</div>
+          <div class="v">0</div>
+          <div class="mini">Total dokumen tercatat</div>
+        </div>
+      </div>
+
+      <div style="height:14px;"></div>
+
+      <div class="grid grid-2">
+        <div class="stat">
+          <div class="k">Total Arsip Digital</div>
+          <div id="totalArsip" class="v">0</div>
+          <div class="mini">Total file PDF yang tersimpan di Drive</div>
+        </div>
+
+        <div class="stat">
+          <div class="k">Quick Action</div>
+          <div class="mini" style="margin-top:10px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button id="btnRefreshStats" class="btn btn-primary btn-sm" onclick="loadDashboardStats()">
+                Refresh
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="window.print()">
+                Cetak Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =========================
+         TAB: DATA DOKUMEN
+         ========================= -->
+    <section id="tabData" class="card hidden">
+
+      <div class="card-head">
+        <div>
+          <h2>Data Dokumen (Pencatatan Nomor)</h2>
+          <p class="hint">
+            Admin dapat mencari, filter, edit, delete, dan cetak laporan data dokumen.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-2 no-print">
+
+        <div>
+          <div class="label">Filter Tipe Dokumen</div>
+          <select id="filterTipe" class="select" onchange="loadAdminLogs()">
+            <option value="ALL">Semua</option>
+            <option value="SuratKeluar">Surat Keluar</option>
+            <option value="BeritaAcara">Berita Acara</option>
+            <option value="SuratKeputusan">Surat Keputusan</option>
+            <option value="SuratTugas">Surat Tugas</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="label">Cari</div>
+          <input id="adminSearchKeyword" class="input" placeholder="Cari nomor/perihal/pengambil/tujuan..." />
+          <div class="hint">Search real-time aktif.</div>
+        </div>
+
+      </div>
+
+      <div class="no-print" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+        <button id="btnReloadLogs" class="btn btn-primary btn-sm" onclick="loadAdminLogs()">
+          Refresh Data
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+          Cetak Laporan
+        </button>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr id="adminLogsHead"></tr>
+          </thead>
+          <tbody id="adminLogsBody"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- =========================
+         TAB: ARSIP DIGITAL
+         ========================= -->
+    <section id="tabArsip" class="card hidden">
+
+      <div class="card-head">
+        <div>
+          <h2>Arsip Digital</h2>
+          <p class="hint">
+            Daftar arsip PDF yang tersimpan di Google Drive beserta link download.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-2 no-print">
+        <div>
+          <div class="label">Cari Arsip</div>
+          <input id="arsipSearchKeyword" class="input" placeholder="Cari nomor / perihal / tipe / pengunggah..." />
+        </div>
+        <div>
+          <div class="label">Action</div>
+          <button id="btnReloadArsip" class="btn btn-primary btn-sm" onclick="loadAdminArsip()">
+            Refresh Arsip
+          </button>
+        </div>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nomor</th>
+              <th>Perihal</th>
+              <th>Tipe</th>
+              <th>Pengunggah</th>
+              <th>Tanggal Arsip</th>
+              <th class="no-print">Download</th>
+            </tr>
+          </thead>
+          <tbody id="adminArsipBody"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- =========================
+         TAB: ADMIN & ROLE
+         ========================= -->
+    <section id="tabAdmins" class="card hidden">
+
+      <div class="card-head">
+        <div>
+          <h2>Admin & Role</h2>
+          <p class="hint">
+            Super Admin dapat menambah admin baru dan menghapus admin.
+          </p>
+        </div>
+      </div>
+
+      <div id="superAdminOnlyBox" class="stat no-print">
+        <div class="k">Tambah Admin Baru</div>
+        <div class="mini" style="margin-top:10px;">
+          <div class="grid grid-2">
+            <div>
+              <div class="label">Username</div>
+              <input id="newAdminUsername" class="input" placeholder="username baru" />
+            </div>
+            <div>
+              <div class="label">Password</div>
+              <input id="newAdminPassword" class="input" placeholder="password baru" />
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button id="btnAddAdmin" class="btn btn-primary btn-sm" onclick="addAdminSubmit()">
+              Tambah Admin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="sep" />
+
+      <h3 style="margin:0 0 10px 0;">Daftar Admin</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th class="no-print">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="adminListBody"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- =========================
+         TAB: DANGER ZONE
+         ========================= -->
+    <section id="tabDanger" class="card hidden">
+
+      <div class="card-head">
+        <div>
+          <h2>Danger Zone</h2>
+          <p class="hint">
+            Fitur ini akan mengosongkan database pencatatan dan arsip.
+            Hanya Super Admin yang dapat menjalankan.
+          </p>
+        </div>
+      </div>
+
+      <div class="stat">
+        <div class="k">Reset Database</div>
+        <div class="mini" style="margin-top:10px;">
+          <p style="margin:0 0 10px 0;">
+            Ini akan menghapus seluruh isi data pada:
+          </p>
+          <ul style="margin:0; padding-left:18px; color: rgba(15,23,42,0.75);">
+            <li>SuratKeluar</li>
+            <li>BeritaAcara</li>
+            <li>SuratKeputusan</li>
+            <li>SuratTugas</li>
+            <li>arsipDokumen</li>
+          </ul>
+
+          <div style="margin-top:14px;">
+            <button id="btnDangerClear" class="btn btn-danger btn-sm" onclick="dangerClearDatabase()">
+              Kosongkan Database
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <img src="kpu.png" alt="Logo KPU" />
+        <div>
+          <b>E-Arsip KPU</b> — Dashboard Admin
+        </div>
+        <div class="hint">
+          © 2026 • Google Apps Script + GitHub Pages
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- =========================
+       MODAL EDIT (ADMIN)
+       ========================= -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div id="modalTitle" class="modal-title">Edit Data</div>
+          <div class="hint">Perubahan akan tersimpan ke Google Sheet.</div>
+        </div>
+        <button id="btnModalClose" class="btn btn-sm btn-soft">Tutup</button>
+      </div>
+
+      <div id="modalBody" class="modal-body">
+        <!-- dynamic -->
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnModalSave" class="btn btn-primary">
+          Simpan Perubahan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="script.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // init admin page
+      initAdminPage();
+    });
+  </script>
+
+</body>
+</html>
